@@ -12,47 +12,60 @@ const navLinks = [
 ];
 
 function SidebarLink({ name, icon: Icon, href, active }: { name: string, icon: any, href: string, active: boolean }) {
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    window.history.pushState({}, '', href);
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  };
+
   return (
     <a
       href={href}
+      onClick={handleClick}
       className={clsx(
-        "flex items-center gap-3 px-5 py-3 rounded-lg transition-colors",
+        "flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group",
         active
-          ? "bg-sidebar-accent text-white font-semibold"
-          : "hover:bg-sidebar-accent text-sidebar-foreground"
+          ? "bg-blue-600/20 text-blue-300 font-semibold shadow-lg border border-blue-500/30"
+          : "hover:bg-sidebar-accent/50 text-sidebar-foreground hover:text-white"
       )}
       aria-current={active ? "page" : undefined}
     >
-      <Icon className="w-5 h-5" />
-      <span>{name}</span>
+      <Icon className={clsx("w-5 h-5 transition-colors", active ? "text-blue-400" : "group-hover:text-blue-300")} />
+      <span className="font-medium">{name}</span>
     </a>
   );
 }
 
 export function Sidebar({ activePath }: { activePath: string }) {
   return (
-    <aside className="flex flex-col bg-sidebar rounded-xl shadow-lg p-3 min-w-[235px] max-w-xs h-full font-medium select-none">
-      <div className="mb-3 flex flex-col gap-2 items-center">
-        {/* App logo: Use a folder icon for now */}
-        <div className="w-11 h-11 bg-blue-900 text-blue-300 rounded-xl flex items-center justify-center mb-1 shadow">
-          <BookOpen className="w-6 h-6" />
+    <aside className="flex flex-col bg-gradient-to-b from-slate-800 to-slate-900 rounded-xl shadow-lg p-4 min-w-[250px] max-w-xs h-full font-medium select-none border-r border-slate-700">
+      <div className="mb-6 flex flex-col gap-2 items-center">
+        <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-blue-800 text-blue-100 rounded-xl flex items-center justify-center mb-2 shadow-lg">
+          <BookOpen className="w-7 h-7" />
         </div>
-        <span className="text-lg font-bold tracking-wide text-white mt-1">
-          File Agent<br/>Control Center
-        </span>
+        <div className="text-center">
+          <h1 className="text-lg font-bold tracking-wide text-white">
+            File Agent
+          </h1>
+          <p className="text-sm text-slate-400 font-normal">Control Center</p>
+        </div>
       </div>
-      <nav className="flex flex-col gap-1 flex-1 mt-5">
+      <nav className="flex flex-col gap-2 flex-1">
         {navLinks.map(link => (
           <SidebarLink
             key={link.href}
             name={link.name}
             icon={link.icon}
             href={link.href}
-            active={activePath === link.href || (activePath === "/" && link.href === "/")}
+            active={activePath === link.href}
           />
         ))}
       </nav>
-      <div className="h-8" />
+      <div className="mt-auto pt-4 border-t border-slate-700">
+        <div className="text-xs text-slate-500 text-center">
+          AI Co-pilot Active
+        </div>
+      </div>
     </aside>
   );
 }
