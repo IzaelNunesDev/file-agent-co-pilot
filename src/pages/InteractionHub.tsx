@@ -1,98 +1,172 @@
 
-import React, { useRef, useState } from "react";
-import { ChatBubble } from "@/components/ui/ChatBubble";
+import React, { useState } from "react";
 import { CardSection } from "@/components/ui/CardSection";
-import { ActionComposer } from "@/components/ui/ActionComposer";
-
-const initialLog = [
-  {
-    side: "left",
-    name: "Agent",
-    message: "Hello! I'm your AI file management assistant. How can I help you today?",
-    type: "normal"
-  },
-  {
-    side: "right",
-    name: "User",
-    message: "I need to organize my Downloads folder",
-    type: "normal"
-  },
-  {
-    side: "left",
-    name: "Agent",
-    message: "I'll help you organize your Downloads folder. Let me scan it first and create a plan.",
-    type: "info"
-  }
-];
-
-const plan = [
-  { step: 1, action: "Scan Directory", details: "Analyze file types and patterns in Downloads" },
-  { step: 2, action: "Create Categories", details: "Documents, Images, Software, Archives" },
-  { step: 3, action: "Move Files", details: "Sort files into appropriate subdirectories" },
-  { step: 4, action: "Generate Report", details: "Summary of organized files and structure" }
-];
+import { ChatBubble } from "@/components/ui/ChatBubble";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Send, Play, Pause, Square } from "lucide-react";
 
 export default function InteractionHub() {
-  const [log, setLog] = useState(initialLog);
-  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [selectedAction, setSelectedAction] = useState("");
+  const [inputValue, setInputValue] = useState("");
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [messages, setMessages] = useState([
+    {
+      id: 1,
+      type: "agent" as const,
+      content: "File Agent Control Center initialized. Ready for commands.",
+      timestamp: "10:30 AM"
+    }
+  ]);
 
-  React.useEffect(() => {
-    containerRef.current?.scrollTo({ top: 99999, behavior: 'smooth' });
-  }, [log.length]);
+  const actions = [
+    { value: "organize", label: "Organize Directory" },
+    { value: "index", label: "Index Files" },
+    { value: "query", label: "Query Memory" },
+    { value: "maintenance", label: "System Maintenance" }
+  ];
 
-  function handleComposer({ action, input }: { action: string, input: string }) {
-    setLog(log => [
-      ...log,
-      { side: "right", name: "User", message: `${action.toUpperCase()}: ${input}`, type: "normal" },
-      { side: "left", name: "Agent", message: `Processing "${action}" request for "${input}"...`, type: "info" }
-    ]);
-  }
+  const handleSubmit = () => {
+    if (!selectedAction || !inputValue.trim()) return;
+
+    const userMessage = {
+      id: messages.length + 1,
+      type: "user" as const,
+      content: `${selectedAction}: ${inputValue}`,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    setIsProcessing(true);
+
+    // Simulate agent processing
+    setTimeout(() => {
+      const agentResponse = {
+        id: messages.length + 2,
+        type: "agent" as const,
+        content: `Processing ${selectedAction} request for: ${inputValue}`,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+      setMessages(prev => [...prev, agentResponse]);
+      setIsProcessing(false);
+    }, 2000);
+
+    setInputValue("");
+  };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-64px)]">
+    <div className="space-y-6">
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-white mb-2">Interaction Hub</h1>
-        <p className="text-slate-400">Communicate with your AI assistant and monitor activities</p>
+        <p className="text-slate-400">Command center for AI file management operations</p>
       </div>
-      
-      <div ref={containerRef} className="flex-1 overflow-y-auto rounded-xl bg-gradient-to-b from-slate-800/50 to-slate-900/50 border border-slate-600 p-6 mb-4 shadow-inner">
-        {log.map((e, i) => (
-          <ChatBubble key={i} side={e.side as any} name={e.name} type={e.type as any}>
-            {e.message}
-          </ChatBubble>
-        ))}
-        
-        {/* Action Plan Table */}
-        <div className="mt-6">
-          <CardSection className="border border-slate-600">
-            <h3 className="text-lg font-semibold text-white mb-3">Current Action Plan</h3>
-            <div className="overflow-hidden rounded-lg border border-slate-600">
-              <table className="w-full">
-                <thead className="bg-slate-700">
-                  <tr>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-slate-300">Step</th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-slate-300">Action</th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-slate-300">Details</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {plan.map((p, i) => (
-                    <tr key={i} className="border-t border-slate-600 hover:bg-slate-700/30">
-                      <td className="py-3 px-4 text-slate-200 font-medium">{p.step}</td>
-                      <td className="py-3 px-4 text-blue-300 font-medium">{p.action}</td>
-                      <td className="py-3 px-4 text-slate-300 text-sm">{p.details}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </CardSection>
+
+      {/* Chat Area */}
+      <CardSection className="min-h-[400px] flex flex-col">
+        <div className="flex-1 overflow-y-auto mb-4 space-y-2">
+          {messages.map((message) => (
+            <ChatBubble
+              key={message.id}
+              side={message.type === "user" ? "right" : "left"}
+              name={message.type === "user" ? "You" : "File Agent"}
+              type={message.type === "agent" ? "info" : "normal"}
+            >
+              <div>
+                <p>{message.content}</p>
+                <div className="text-xs opacity-70 mt-1">{message.timestamp}</div>
+              </div>
+            </ChatBubble>
+          ))}
+          {isProcessing && (
+            <ChatBubble side="left" name="File Agent" type="info">
+              <div className="flex items-center gap-2">
+                <div className="animate-spin w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full"></div>
+                Processing your request...
+              </div>
+            </ChatBubble>
+          )}
         </div>
-      </div>
-      
-      <div className="py-2">
-        <ActionComposer onSubmit={handleComposer} />
-      </div>
+
+        {/* Action Composer */}
+        <div className="border-t border-slate-600 pt-4">
+          <div className="flex gap-3 items-end">
+            <div className="flex-1">
+              <Select value={selectedAction} onValueChange={setSelectedAction}>
+                <SelectTrigger className="bg-slate-700 border-slate-600">
+                  <SelectValue placeholder="Select action..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {actions.map(action => (
+                    <SelectItem key={action.value} value={action.value}>
+                      {action.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex-[2]">
+              <Input
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                placeholder="Enter path, query, or parameters..."
+                className="bg-slate-700 border-slate-600"
+                onKeyPress={(e) => e.key === 'Enter' && handleSubmit()}
+              />
+            </div>
+            <Button 
+              onClick={handleSubmit}
+              disabled={!selectedAction || !inputValue.trim() || isProcessing}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              <Send className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+      </CardSection>
+
+      {/* Action Plan Table */}
+      <CardSection>
+        <h3 className="text-lg font-semibold text-white mb-4">Current Action Plan</h3>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-slate-600">
+                <th className="text-left py-2 text-slate-300">Step</th>
+                <th className="text-left py-2 text-slate-300">Action</th>
+                <th className="text-left py-2 text-slate-300">Status</th>
+                <th className="text-left py-2 text-slate-300">Details</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr className="border-b border-slate-700">
+                <td className="py-2 text-slate-200">1</td>
+                <td className="py-2 text-slate-200">Scan Directory</td>
+                <td className="py-2">
+                  <span className="px-2 py-1 bg-green-600/20 text-green-300 rounded text-xs">Completed</span>
+                </td>
+                <td className="py-2 text-slate-400">Found 42 files</td>
+              </tr>
+              <tr className="border-b border-slate-700">
+                <td className="py-2 text-slate-200">2</td>
+                <td className="py-2 text-slate-200">Analyze Files</td>
+                <td className="py-2">
+                  <span className="px-2 py-1 bg-blue-600/20 text-blue-300 rounded text-xs">In Progress</span>
+                </td>
+                <td className="py-2 text-slate-400">Processing metadata...</td>
+              </tr>
+              <tr>
+                <td className="py-2 text-slate-200">3</td>
+                <td className="py-2 text-slate-200">Organize</td>
+                <td className="py-2">
+                  <span className="px-2 py-1 bg-slate-600/20 text-slate-400 rounded text-xs">Pending</span>
+                </td>
+                <td className="py-2 text-slate-400">Waiting for analysis</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </CardSection>
     </div>
   );
 }
