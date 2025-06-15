@@ -5,16 +5,23 @@ import { ChatBubble } from "@/components/ui/ChatBubble";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Send, Play, Pause, Square } from "lucide-react";
+import { Send } from "lucide-react";
+
+type Message = {
+  id: number;
+  type: "agent" | "user";
+  content: string;
+  timestamp: string;
+};
 
 export default function InteractionHub() {
   const [selectedAction, setSelectedAction] = useState("");
   const [inputValue, setInputValue] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
-  const [messages, setMessages] = useState([
+  const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
-      type: "agent" as const,
+      type: "agent",
       content: "File Agent Control Center initialized. Ready for commands.",
       timestamp: "10:30 AM"
     }
@@ -30,9 +37,9 @@ export default function InteractionHub() {
   const handleSubmit = () => {
     if (!selectedAction || !inputValue.trim()) return;
 
-    const userMessage = {
+    const userMessage: Message = {
       id: messages.length + 1,
-      type: "user" as const,
+      type: "user",
       content: `${selectedAction}: ${inputValue}`,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
@@ -42,9 +49,9 @@ export default function InteractionHub() {
 
     // Simulate agent processing
     setTimeout(() => {
-      const agentResponse = {
+      const agentResponse: Message = {
         id: messages.length + 2,
-        type: "agent" as const,
+        type: "agent",
         content: `Processing ${selectedAction} request for: ${inputValue}`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
